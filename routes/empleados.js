@@ -5,7 +5,7 @@ const { validarJWT } = require('../helpers/generar-jwt');
 const { validarCampos } = require('../middlewares/validar-campos');
 const router = Router();
 
-router.use(validarJWT);
+//router.use(validarJWT);
 
 router.post('/new', [
     check('dpi', 'El dpi es una obligación').not().isEmpty(),
