@@ -2,20 +2,17 @@ const { response } = require('express');
 const Empleado = require('../models/empleados');
 
 //Listar empleados
-const getEmpleados = async(req, res = response ) => {
-
-    const empleado = await Empleado.find();
-
-    res.json({
-        ok: true,
-        empleado
+const getEmpleados = (req, res) => {
+    Empleado.find((err, empleados) =>{
+        err && res.status(500).send(err.message);
+        res.status(200).json(empleados)
     })
+  
 }
 
+//Creacion empleado
 const crearEmpleado = async (req, res = response) => {
-
     const {dpi,nombre,apellido,fechaNacimiento,puesto,fechaContratacion} = req.body;
-
     try {
         let empleado = await Empleado.findOne({dpi});
         if (empleado) {
@@ -42,45 +39,73 @@ const crearEmpleado = async (req, res = response) => {
     }
 }
 
-// const loginUsuario = async (req, res = response) => {
+//Actualizar empleado
+const actualizarEmpleado = async(req, res = response) => {
+    const empleadoId = req.params.id;
+    try {
 
-//     const { correo, contra } = req.body;
+        const empleado = await Empleado.findById( empleadoId )
 
-//     try {
+        if ( !empleado ) {
+            return res.status(404).json({
+                ok: false,
+                msg: 'Empleado no existe con ese ID'
+            });
+        }
 
-//         const usuario = await Usuario.findOne({ correo });
-//         if ( !usuario ) {
-//             return res.status(400).json({
-//                 msg: 'Usuario / Password no son correctos'
-//             });
-//         }
+        const nuevoEmpleado = {
+            ...req.body
+        }
 
-//         const validPassword = bcryptjs.compareSync( contra, usuario.contra );
-//         if( !validPassword ){
-//             return res.status(402).json({
-//                 msg: 'Usuario / Password no son correctos'
-//             });
-//         }
+        const empleadoActualizado = await Empleado.findByIdAndUpdate( empleadoId, nuevoEmpleado, { new: true } );
 
-//         const token = await generarJWT( usuario.nombre );
+        res.json({
+            ok: true,
+            evento: empleadoActualizado
+        });
+        
+    } catch (error) {
 
-//         res.json({
-//             usuario,
-//             token
-//         })
+        console.log(error)
+        res.status(500).json({
+            ok: false,
+            msg: 'Hable con el administrador'
+        });
+    }    
 
-//     } catch (error) {
+}
 
-//         console.log(error)
-//         return res.status(500).json({
-//             msg: 'Hable con soporte'
-//         })
+//Eliminar empleado
+const eliminarEmpleado = async(req, res = response ) => {
+    const empleadoId = req.params.id;
+    try {
 
-//     }
+        const empleado = await Empleado.findById( empleadoId )
 
-// }
+        if ( !empleado ) {
+            return res.status(404).json({
+                ok: false,
+                msg: 'Empleado no existe con ese ID'
+            });
+        }
+        await Empleado.findByIdAndDelete( empleadoId );
+
+        res.json({ ok: true, msg: 'Empleado eliminado' });
+        
+    } catch (error) {
+
+        console.log(error)
+        res.status(500).json({
+            ok: false,
+            msg: 'Hable con el administrador'
+        });
+    }    
+}
+
 
 module.exports = {
+    getEmpleados,
     crearEmpleado,
-    //loginUsuario,
+    actualizarEmpleado,
+    eliminarEmpleado
 }
